@@ -1,0 +1,2 @@
+# weatherman
+Python test project
