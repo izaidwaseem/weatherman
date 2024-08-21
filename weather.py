@@ -64,11 +64,8 @@ def plot_temperature_bars(df):
         high_bar = '+' * int(high_temp)
         low_bar = '+' * int(low_temp)
         
-        # Print high temperature in red
-        print(f"{date} {Fore.RED}{high_bar} {high_temp}C{Style.RESET_ALL}")
-        
-        # Print low temperature in blue
-        print(f"{date} {Fore.BLUE}{low_bar} {low_temp}C{Style.RESET_ALL}")
+        # Print both temperatures on the same line
+        print(f"{date} {Fore.BLUE}{low_bar} {low_temp}C {Style.RESET_ALL}- {Fore.RED}{high_bar} {high_temp}C{Style.RESET_ALL}")
 
 
 def calculate_averages(df):
@@ -100,9 +97,7 @@ def find_extremes(df):
 def process_weather_files(year, month, folder_path, year_wise=False, chart=False):   
     txt_files = glob(os.path.join(folder_path, "*.txt"))
     
-    if chart:
-        all_data = []
-        
+    all_data = []
     all_highest_temps = []
     all_lowest_temps = []
     all_humidities = []
@@ -120,11 +115,14 @@ def process_weather_files(year, month, folder_path, year_wise=False, chart=False
         if df.empty:
             continue
         
-        if year_wise:
-            df_filtered = filter_by_year_and_month(df, year)
-        else:
-            df_filtered = filter_by_year_and_month(df, year, month)
+        # Filter data by year and month
+        df_filtered = filter_by_year_and_month(df, year, month)
         
+        # Collect data for charting
+        if chart:
+            all_data.append(df_filtered)
+        
+        # Process extremes or averages depending on flags
         if year_wise:  # Year-wise report for extremes
             current_highest, current_highest_day, current_lowest, current_lowest_day, current_most_humid, current_most_humid_day = find_extremes(df_filtered)
             
@@ -148,9 +146,8 @@ def process_weather_files(year, month, folder_path, year_wise=False, chart=False
                 all_lowest_temps.append(avg_lowest_temp)
             if avg_humidity is not None:
                 all_humidities.append(avg_humidity)
-        elif chart:  # Generate charts
-            all_data.append(df_filtered)
 
+    # Handle year-wise extremes reporting
     if year_wise:
         if highest_temp != -float('inf'):
             print(f"Highest: {highest_temp}C on {highest_temp_day}")
@@ -166,7 +163,9 @@ def process_weather_files(year, month, folder_path, year_wise=False, chart=False
             print(f"Humid: {most_humid}% on {most_humid_day}")
         else:
             print(f"No data for humidity in {year}")
-    elif month:
+
+    # Handle month-wise averages reporting
+    if month:
         if all_highest_temps and all_lowest_temps and all_humidities:
             overall_avg_highest_temp = sum(all_highest_temps) / len(all_highest_temps)
             overall_avg_lowest_temp = sum(all_lowest_temps) / len(all_lowest_temps)
@@ -177,12 +176,14 @@ def process_weather_files(year, month, folder_path, year_wise=False, chart=False
             print(f"Average Humidity: {overall_avg_humidity:.1f}%")
         else:
             print(f"No data available for {year}-{month}")
+
+    # Handle chart generation
+    if chart and all_data:
+        combined_df = pd.concat(all_data)
+        plot_temperature_bars(combined_df)
     elif chart:
-        if all_data:
-            combined_df = pd.concat(all_data)
-            plot_temperature_bars(combined_df)
-        else:
-            print(f"No data available for {year}-{month}")
+        print(f"No data available for {year}-{month}")
+
 
 def main():
     parser = argparse.ArgumentParser(description='Weather report')
