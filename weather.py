@@ -10,6 +10,10 @@ init()
 
 
 def load_weather_data(file):
+    """
+    Load weather data from a CSV file into a DataFrame.
+    Fills NaN values with 0. Returns an empty DataFrame if parsing fails.
+    """
     try:
         df = pd.read_csv(file)
         df.fillna(0, inplace=True)  # Fill NaN values with 0
@@ -20,6 +24,10 @@ def load_weather_data(file):
 
 
 def get_date_column(df):
+    """
+    Determine the date column in the DataFrame.
+    Checks for columns named 'PKT', 'PKST', or 'GST' and returns the first match.
+    """
     for column in ['PKT', 'PKST', 'GST']:
         if column in df.columns:
             return column
@@ -27,12 +35,16 @@ def get_date_column(df):
 
 
 def filter_by_year_and_month(df, year, month=None):
+    """
+    Filter DataFrame rows by year and optionally by month.
+    Converts date column to datetime and filters accordingly.
+    """
     date_column = get_date_column(df)
     if not date_column:
         print("No known date column found.")
         return pd.DataFrame()
     
-    # Filter out rows with invalid date format
+    # Filter out rows with valid date format
     df = df[df[date_column].str.match(r'\d{4}-\d{1,2}-\d{1,2}')]
 
     # Convert to datetime
@@ -49,6 +61,10 @@ def filter_by_year_and_month(df, year, month=None):
 
 
 def plot_temperature_bars(df):
+    """
+    Plot a bar chart of temperatures for the given DataFrame.
+    Displays maximum and minimum temperatures for each day.
+    """
     if df.empty:
         print("No data available for the specified month.")
         return
@@ -69,6 +85,10 @@ def plot_temperature_bars(df):
 
 
 def calculate_averages(df):
+    """
+    Calculate average temperatures and humidity from the DataFrame.
+    Returns average highest temperature, lowest temperature, and average humidity.
+    """
     if df.empty:
         return None, None, None
     
@@ -80,6 +100,11 @@ def calculate_averages(df):
 
 
 def find_extremes(df):
+    """
+    Find the highest, lowest temperatures, and most humid day from the DataFrame.
+    Returns the highest temperature, its day, lowest temperature, its day,
+    most humid day, and the humidity value.
+    """
     if df.empty:
         return None, None, None, None, None, None
     
@@ -94,7 +119,12 @@ def find_extremes(df):
     return highest_temp, highest_temp_day, lowest_temp, lowest_temp_day, most_humid, most_humid_day
 
 
-def process_weather_files(year, month, folder_path, year_wise=False, chart=False):   
+def process_weather_files(year, month, folder_path, year_wise=False, chart=False):  
+    """
+    Process weather data files in the specified folder.
+    Depending on the flags, generate year-wise extremes or month-wise averages,
+    and optionally create a temperature bar chart.
+    """ 
     txt_files = glob(os.path.join(folder_path, "*.txt"))
     
     all_data = []
@@ -186,6 +216,9 @@ def process_weather_files(year, month, folder_path, year_wise=False, chart=False
 
 
 def main():
+    """
+    Main function to parse command-line arguments and process weather files.
+    """
     parser = argparse.ArgumentParser(description='Weather report')
     parser.add_argument("-e", "--year", type=int, required=True, help="Year of report")
     parser.add_argument("-m", "--month", type=int, help="Month of report (optional, for monthly reports)")
